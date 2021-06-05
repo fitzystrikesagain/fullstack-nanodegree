@@ -6,8 +6,8 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 # Enable debug mode.
 DEBUG = True
 
+with open(os.path.expanduser('~/.pgpass'), 'r') as f:
+    host, port, database, user, password = f.read().split(':')
+
 # Connect to the database
-
-
-# TODO IMPLEMENT DATABASE URL
-SQLALCHEMY_DATABASE_URI = '<Put your local database url>'
+SQLALCHEMY_DATABASE_URI = f"postgresql://{user}:{password}@{host}/{database}"
