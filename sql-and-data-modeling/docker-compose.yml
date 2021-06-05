@@ -1,0 +1,12 @@
+version: "3.6"
+
+services:
+  postgres-classroom:
+    image: postgres
+    container_name: postgres-classroom
+    env_file:
+      - .env
+    hostname: postgres-classroom
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
