@@ -2,6 +2,7 @@ version: "3.6"
 
 x-shared-env-files: &shared-env-files
   - config.env
+  - secrets.env
 
 services:
   api_server:
