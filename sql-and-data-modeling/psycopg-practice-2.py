@@ -3,7 +3,12 @@ Exercise 2
 Now modify your script to use string composition throughout. Use both `%s` and `%(named_var)s` methods.
 Run the script and then connect to the database using psql to inspect that the records were properly inserted into 
 the tables in our database.
+
+Exercise 3
+Fetch results from your first created record to create a new record slightly modified.
+Fetch all of the rows from the table and print each item line-by-line using a loop.
 """
+
 from utils.constants import get_conn
 
 TABLE_NAME = "vehicles"
@@ -52,4 +57,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
