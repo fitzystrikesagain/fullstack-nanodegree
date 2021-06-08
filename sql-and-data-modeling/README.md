@@ -284,9 +284,9 @@ SQLAlchemy is split into two libraries:
 
 * SQLAlchemy Core
 * SQLAlchemy ORM: offered as an optional library
-    * ORM uses the Core library inside
-    * Lets us map from the database schema to the application’s objects
-      ![Layers of Abstraction Diagram](./assets/layers_of_abstraction_overview.png)
+  * ORM uses the Core library inside
+  * Lets us map from the database schema to the application’s objects
+    ![Layers of Abstraction Diagram](./assets/layers_of_abstraction_overview.png)
 
 ### Mapping Between Tables and Classes
 
@@ -412,8 +412,8 @@ Check out the SQLAlchemy docs on Column and Data Types to learn more.
 * Constraints are conditions on your column, that provide checks on the data’s validity. It does not allow data that
   violates constraints to be inserted into the database (it will raise an error if you attempt to).
 * In SQLAlchemy, constraints are set in `db.Column()` after setting the data type.
-    * `nullable=False` is equivalent to `NOT NULL` in SQL
-    * `unique=True` is equivalent to `UNIQUE` in SQL Example
+  * `nullable=False` is equivalent to `NOT NULL` in SQL
+  * `unique=True` is equivalent to `UNIQUE` in SQL Example
 
 ```
 class User(db.Model):
@@ -423,4 +423,11 @@ class User(db.Model):
 
 * [SQLAlchemy Constraints Docs](https://docs.sqlalchemy.org/en/latest/core/constraints.html) . Constraints available in
   SQLAlchemy are (generally) available in Flask-SQLAlchemy, and exposed by db.<sqlalchemy_method_or_interface>.
+
+### Additional Resources on SQLAlchemy
+* Bookmark this:  [SQLAlchemy Cheat Sheet](https://github.com/crazyguitar/pysheeet/blob/master/docs/notes/python-sqlalchemy.rst#set-a-database-url)
+*  [Using PostgreSQL through SQLAlchemy](https://www.compose.com/articles/using-postgresql-through-sqlalchemy/)
+
+------
+#fsnd/sql-data-modeling
 
