@@ -11,16 +11,6 @@ app.config["SQLALCHEMY_DATABASE_URI"] = uri
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
-"""
-Exercise 4
-
-    Run the script, so that the persons table exists.
-    Run the application, with debug mode on.
-    Create a person record in the persons table, by connecting to psql and using INSERT INTO.
-    Change the index route from saying "Hello World!" to saying "Hello" to the name of a person in the persons table.
-    Preview the app in the browser, and see it output "Hello" next to the name of the person record in the database.
-"""
-
 
 class Person(db.Model):
     """
@@ -45,7 +35,7 @@ db.create_all()
 
 @app.route("/")
 def index():
-    person = Person.query.filter(Person.id == 2).first()
+    person = Person.query.first()
     return f"Hello {person.name}!"
 
 
@@ -60,7 +50,6 @@ def get_and_greet_person(id):
         Change the index route from saying "Hello World!" to saying "Hello" to the name of a person in the persons table.
         Preview the app in the browser, and see it output "Hello" next to the name of the person record in the database.
     """
-
     person = Person.query.filter(Person.id == id).first()
     if not person:
         return "Person not found"
