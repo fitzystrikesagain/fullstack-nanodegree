@@ -328,22 +328,99 @@ Note the similarities:
 
 * [Flask Docs](https://flask.palletsprojects.com/)  under “Quickstart”
 * [Flask-SQLAlchemy Docs](http://flask-sqlalchemy.palletsprojects.com/)  under “Quickstart”
-
-Application [here](./app.py)
+* [Primer on decorators from Real Python](https://realpython.com/primer-on-python-decorators/#decorators-with-arguments)
+  . Application [here](./app.py)
 
 ### Connecting to the Database
 
-### db.Model and Defining Models
+A SQLAlchemy URI looks like this:
+![URI parts](../assets/database_uri_parts.png)
 
-### Syncing Models, db.create_all()
+To add a SQLAlchemy connection to our Flask app, we need to do the following:
+
+```
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://udacitystudios@localhost:5432/example'
+db = SQLAlchemy(app)
+```
+
+### `db.Model` and Defining Models
+
+Given an instance of the SQLAlchemy class from Flask-SQLAlchemy,
+
+```
+db = SQLAlchemy(app)
+```
+
+* `db` is an interface for interacting with our database
+* `db.Model` lets us create and manipulate **data models**
+* `db.session` lets us create and manipulate **database transactions**
+
+### Syncing Models, `db.create_all()`
+
+`db.create_all()` detects models and creates tables for them (if they don’t exist). SQLAlchemy will auto increment an
+integer column set as the primary key.
 
 ### Inserting Records, Using Debug Mode
 
+We’ll finish off creating a Hello App that says hello to our name by inserting a record into the persons table in our
+database, and showing the person’s name on the index route.
+
+```
+postgres@localhost:mydb> INSERT INTO persons (name) VALUES ('Fitzy');
+INSERT 0 1
+Time: 0.019s
+postgres@localhost:mydb> select * from persons
++------+--------+
+| id   | name   |
+|------+--------|
+| 1    | Fitzy  |
++------+--------+
+```
+
+Exercise [here](./flask-hello-app.py)
+
 ### Experimenting in Interactive Mode
+
+```
+We can insert new records into the database using SQLAlchemy by running
+person = Person(name=‘Amy’)
+db.session.add(person)
+db.session.commit()
+```
 
 ### SQLAlchemy Data Types
 
+![Data types](https://video.udacity-data.com/topher/2019/August/5d5a43a0_screen-shot-2019-08-18-at-11.36.57-pm/screen-shot-2019-08-18-at-11.36.57-pm.png)
+SQLAlchemy data types. Source: https://flask-sqlalchemy.palletsprojects.com/en/2.x/models/
+
+Flask-SQLAlchemy data types generally map to SQLAlchemy’s library of data types.
+
+Check out the SQLAlchemy docs on Column and Data Types to learn more.
+
+#### Resources
+
+* [Flask-SQLAlchemy: Declaring Models](https://flask-sqlalchemy.palletsprojects.com/en/2.x/models/)
+* [Getting Started with PostgreSQL Data Types](http://www.postgresqltutorial.com/postgresql-data-types/)
+
 ### SQLAlchemy Constraints
 
-# fsnd/sql-data-modeling
+* Column constraints ensure data integrity across our database, allowing for database accuracy and consistency.
+* Constraints are conditions on your column, that provide checks on the data’s validity. It does not allow data that
+  violates constraints to be inserted into the database (it will raise an error if you attempt to).
+* In SQLAlchemy, constraints are set in `db.Column()` after setting the data type.
+    * `nullable=False` is equivalent to `NOT NULL` in SQL
+    * `unique=True` is equivalent to `UNIQUE` in SQL Example
+
+```
+class User(db.Model):
+  …
+  name = db.Column(db.String(), nullable=False, unique=True)
+```
+
+* [SQLAlchemy Constraints Docs](https://docs.sqlalchemy.org/en/latest/core/constraints.html) . Constraints available in
+  SQLAlchemy are (generally) available in Flask-SQLAlchemy, and exposed by db.<sqlalchemy_method_or_interface>.
 
