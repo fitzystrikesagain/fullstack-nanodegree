@@ -10,14 +10,16 @@ services:
     ports:
       - "5432:5432"
     restart: unless-stopped
-    volumes:
-      - ./data:/var/lib/postgresql/data
+#    volumes:
+#      - ./data:/var/lib/postgresql/data
   flask:
     build:
       context: .
       dockerfile: Dockerfile
     command: [ "python", "flask_hello_app.py" ]
     container_name: flask-fsnd
+    depends_on:
+      - postgres
     environment:
       - FLASK_PORT=5000
     image: python:3.9.5
