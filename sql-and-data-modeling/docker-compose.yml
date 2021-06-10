@@ -16,7 +16,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: [ "python", "flask_hello_app.py" ]
+    command: [ "python", "dummy_todo.py" ]
     container_name: flask-fsnd
     depends_on:
       - postgres
