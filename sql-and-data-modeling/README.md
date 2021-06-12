@@ -598,4 +598,585 @@ A flush takes pending changes and translates them into commit-ready commands. Th
 
 ![Lifecycle diagram](../assets/object_lifecycle.png)
 
----
+## Build a CRUD App with SQLAlchemy - Part 1
+
+### Intro
+
+In this section we’ll apply what we’ve learned so far to build a fully functional application. This section will cover
+CRUD:
+
+* CREATE —> `INSERT`
+    * Creating new records, e.g., `db.session.add(user1)`
+* READ —> `SELECT`
+    * Reading records from user’s perspective, e.g., `User.query.all()`
+* UPDATE —> `UPDATE`
+    * User makes changes to something that already exists, e.g., `user1.foo = ’new value`
+* DELETE —> `DELETE`
+    * User deletes something, e.g., `db.session.delete(user1)`
+
+We’ll also:
+
+* Traverse all layers of the backend stack: Flask, Postgres, ORM, and SQL
+* Develop using the MVC pattern to architect our application
+* Handle schema evolution
+* Model relationships between objects in our app
+* Implement search functionality
+
+### Create a dummy todo app
+
+[dummy_todo](dummy_todo)
+
+### Reading todo Items: the “R” in CRUD
+
+[]()
+
+### Model View Controller (MVC)
+
+**MVC** stands for Model-View-Controller, a common pattern for architecting web applications
+
+* ** ~Models~ **: manage data and business logic
+* ** ~Views~ **: handle display & representation logic
+* ** ~Controllers~ **: routes commands to models and views, contains control logic
+
+When a user visits a site, they see the view, the HTML file. When they interact with the app, they send requests to the
+controller. The controller processes the view’s request, sometimes updating the view directly, sometimes notifying the
+model. The model handles database reads and writes, and model updates will update the view.
+
+### Handling User Input
+
+Creating, updating, and deleting requires taking user input and interaction with the database to figure out what/how to
+change. To accept new todos in our application, we’ll want to:
+
+* Implement an HTML form that accepts user input for new todo along with a submit button
+* Send that request to the controller to retrieve the user input
+* Update the model accordingly
+
+In this section, we’ll:
+
+1. Determine how to accept and get user data in Flask
+2. Send data in controllers using db sessions in a controller
+3. Manipulate models by adding records in SQLAlchemy models
+4. Direct how the view should update
+
+### Getting user data in Flask — Part 1
+
+There are three ways to get user data from the view:
+
+1. URL query parameters: `foo?field1=value1` and parsing them with `request.args`:
+
+```
+value1 = request.args.get("field1")
+```
+
+2. Using web forms and `request.form`:
+
+```
+username = request.form.get("username")
+password = request.form.get("password")
+```
+
+3. Received JSON at the endpoint using `request.data`:
+
+```
+data_string = request.data
+data_dictionary = json.loads(data_string)
+```
+
+`request.args.get` and `requests.form.get` both accept an optional second parameter:
+
+```
+request.args.get("foo", "my_default")
+```
+
+Forms take an `action`, which corresponds to the name of the route, and a `method`, which corresponds to the HTTP method
+
+### Using AJAX to send data to Flask
+
+* Data requests are either synchronous or asynchronous
+* Async data requests are requests that get sent to the server and back to the client without a page refresh
+    * This might be done using Axios or JQuery
+* Async requests (AJAX requests) use one of two methods:
+    * `XMLHttpRequest`
+        * Uses window object, which is natively available on the browser
+    * Fetch (the modern way)
+
+#### `XMLHttpRequest`
+
+Client-side code typically looks something like this when using `XMLHttpRequest ` to send AJAX requests:
+
+```
+// Build request object
+var xhttp = new XMLHttpRequest();
+
+// Fetch data from DOM
+description = document.getElementById("description").value;
+
+// Open connection from client to server
+// Pass in route and query parameters
+xhttp.open("GET", "/todos/create?description=" + description);
+
+// Send the request and close the connection
+xhttp.send();
+```
+
+In async requests, we need to react to the server on the client side. To update the loaded DOM client-side:
+
+```
+xhttp.onreadystatechange = function() {
+	if (this.readyState === 4 && this.status === 200) {
+		// on successful response
+		console.log(xhttp.responseText)
+	}
+}
+```
+
+This is a clunky way of dealing with and reacting to client requests, so there are libraries like Axios to abstract this
+away from the developer.
+
+#### Fetch
+
+Fetch is the more modern approach. It’s another window object that allows us to easily send requests and specify
+parameters, headers, and the body.
+
+```
+fetch("/my/request", {
+	method: "POST",
+	body: JSON.stringify({
+		"description": "some description here"
+	}),
+	headers: {
+		"Content-Type": "application/json"
+	}
+})
+```
+
+### Using sessions in controllers
+
+Controllers and sessions can be used to gracefully handle and display errors. Commits can either succeed or fail. On
+failure, we usually want to roll the session back rather than inadvertently committing. Closing the connection before a
+transaction will cause an implicit commit.
+
+We can wrap our commit inside a `try` `except` block:
+
+```
+import sys
+
+try:
+	todo = Tod(description=description)
+	db.session.add(todo)
+	db.session.commit()
+except:
+	db.session.rollback()
+	error=True
+	print(sys.exc_info())
+finally:
+	db.session.close()
+```
+
+#### Resources on Error Handling
+
+* [Flask Docs on Application Errors](https://flask.palletsprojects.com/en/1.0.x/errorhandling/)
+* [Error Handling in Flask Tutorial](https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-vii-error-handling)
+
+## Lesson 6: Migrations
+
+### Introduction
+
+Requirements and Schemas ~~can~~ will change over time, so in this lesson we’ll cover database migrations and schema
+evolutions.
+
+* Migrations deal with how we manage schema modifications over time
+* Mistakes are costly and can cause production incidents. We want to be able to:
+    * Quickly roll back mistakes
+    * Test changes before we make them
+* A migration file keeps track of a set of changes to our database schema(s). This offers rough VC for data over time
+
+Migrations stack together to form the latest version of our database schema. We can upgrade by applying migrations and
+can roll back by reverting migrations
+
+### Migrations Part 2
+
+Migrations are typically stored in a migrations folder. There should be a one-to-one mapping between the changes we’re
+making and the migration files:
+
+```
+migrations/
+	add_tables_001.py
+	add_column_to_todos_002.py
+...
+```
+
+They are applied using command line scripts:
+
+```
+$ db migrate    # create a migrations script template to fill out
+$ db upgrade    # apply unapplied migrations
+$ db downgrade  # rollback applied migrations
+```
+
+[Flask-Migrate](https://flask-migrate.readthedocs.io/)  is our library for migrating changes using SQLAlchemy. It uses a
+library called  [Alembic](https://alembic.sqlalchemy.org/en/latest/index.html)  underneath the hood.
+
+* **Flask-Migrate** (flask_migrate) is our migration manager for migrating SQLALchemy-based database changes
+* **Flask-Script** (flask_script) lets us run migration scripts we defined, from the terminal
+
+Migration steps:
+
+1. Initialize the migration repository structure for storing migrations
+2. Create a migration script
+3. Manually run the migration script
+
+[Flask-Migrate docs](https://flask-migrate.readthedocs.io/)
+
+### Flask-Migrate - Part 1
+
+Install Flask-Migrate:
+
+```
+pip install Flask-Migrate
+```
+
+Add the import:
+
+```
+from flask_migrate import Migrate
+```
+
+Instantiate the Migration object after the `db` definition:
+
+```
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+```
+
+Relevant docs:
+
+* [Flask-Migrate documentation](https://flask-migrate.readthedocs.io/en/latest/)
+* [Alembic documentation](https://alembic.sqlalchemy.org/en/latest/)
+
+### Flask-Migrate - Part 2
+
+Create the migrations directory, config, and scripts:
+
+```
+flask db init
+```
+
+This will add a *migrations* folder to the application (which should be committed to VC). If there isn’t named
+an `app.py` or `wsgi.py` module, then `FLASK_APP` needs to be set:
+
+```
+Error: Could not locate a Flask application. You did not provide the "FLASK_APP" environment variable, and a "wsgi.py" or "app.py" module was not found in the current directory.
+```
+
+In our case:
+
+```
+root@24994f6ed3ba:/usr/src/app# export FLASK_APP=/usr/src/app/dummy_todo.py
+root@24994f6ed3ba:/usr/src/app# flask db init
+  Creating directory /usr/src/app/migrations ...  done
+  Creating directory /usr/src/app/migrations/versions ...  done
+  Generating /usr/src/app/migrations/alembic.ini ...  done
+  Generating /usr/src/app/migrations/README ...  done
+  Generating /usr/src/app/migrations/script.py.mako ...  done
+  Generating /usr/src/app/migrations/env.py ...  done
+  Please edit configuration/connection/logging settings in '/usr/src/app/migrations/alembic.ini' before proceeding.
+
+```
+
+Generate an initial migration:
+
+```
+flask db migrate -m "Initial migration."
+```
+
+If anything goes wrong, we can stop Postgres to close existing connections. MacOS:
+
+```
+$ brew services start postgresql
+$ brew services stop postgresql
+```
+
+Docker
+
+```
+docker restart <container_name>
+```
+
+Otherwise, Postgres-native:
+
+```
+pg_ctl -D /usr/local/var/postgres stop
+pg_ctl -D /usr/local/var/postgres start
+```
+
+We want our first migration script to capture the creation of the `todos` table, so we should first drop and recreate
+the `todoapp` db:
+
+```
+root@postgres-fsnd:/# dropdb todoapp -U postgres
+root@postgres-fsnd:/# createdb todoapp -U postgres
+```
+
+When we run the first migrate, `alembic` detects the difference between the Flask model and the database:
+
+```
+root@a6a29b654607:/usr/src/app# flask db migrate
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.autogenerate.compare] Detected added table 'todos'
+  Generating /usr/src/app/migrations/versions/e9406c44d523_.py ...  done
+```
+
+Flask-Migrate then adds a new migration script to the `migrations/versions/` directory:
+
+```
+root@a6a29b654607:/usr/src/app# ls migrations/versions/
+__pycache__  e9406c44d523_.py
+```
+
+Inspecting this migration, we can see the evolution that creates the `todos` table:
+
+```
+root@a6a29b654607:/usr/src/app# cat migrations/versions/e9406c44d523_.py
+"""empty message
+
+Revision ID: e9406c44d523
+Revises:
+Create Date: 2021-06-12 03:24:13.266918
+
+"""
+from alembic import op
+import sqlalchemy as sa
+
+
+# revision identifiers, used by Alembic.
+revision = 'e9406c44d523'
+down_revision = None
+branch_labels = None
+depends_on = None
+
+
+def upgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    op.create_table('todos',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('description', sa.String(), nullable=False),
+    sa.PrimaryKeyConstraint('id')
+    )
+    # ### end Alembic commands ###
+
+
+def downgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    op.drop_table('todos')
+    # ### end Alembic commands ###
+```
+
+### Flask-Migrate - Part 3
+
+Flask-Migrate commands:
+
+```
+$ flask db init
+Create migrations directory and config
+
+$ flask db migrate
+Detect model changes to be made and create a migration file with ups and downs
+
+$ flask db upgrade
+Run the upgrade command in the migration file to apply the migration
+
+$ flask db downgrade
+Run the downgrade command in the migration file to roll back the migration
+```
+
+Running an upgrade will create the `todos` table:
+
+```
+root@a6a29b654607:/usr/src/app# flask db upgrade
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> e9406c44d523, empty message
+```
+
+```
+postgres@localhost:todoapp> \dt
++----------+-----------------+--------+----------+
+| Schema   | Name            | Type   | Owner    |
+|----------+-----------------+--------+----------|
+| public   | alembic_version | table  | postgres |
+| public   | todos           | table  | postgres |
++----------+-----------------+--------+----------+
+```
+
+The `alembic_version` table stores the versions of our databases. It manages migrations and versions for us, so we
+should leave it alone.
+
+Now we’ll add the `completed` column to our Model:
+
+```
+class Todo(db.Model):
+    """
+    Create a todos table with dolumns id and description
+    """
+    __tablename__ = "todos"
+    id = db.Column(db.Integer, primary_key=True)
+    description = db.Column(db.String, nullable=False)
+    completed = db.Column(db.Boolean, nullable=False, default=False)
+```
+
+Running `migrate` again shows us the detected changes and generations another migration script:
+
+```
+root@a6a29b654607:/usr/src/app# flask db migrate
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.ddl.postgresql] Detected sequence named 'todos_id_seq' as owned by integer column 'todos(id)', assuming SERIAL and omitting
+INFO  [alembic.autogenerate.compare] Detected added column 'todos.completed'
+  Generating /usr/src/app/migrations/versions/295a929a440f_.py ...  done
+```
+
+Note that our table has not been updated yet:
+
+```
+postgres@localhost:todoapp> \d todos
++-------------+-------------------+-----------------------------------------------------+
+| Column      | Type              | Modifiers                                           |
+|-------------+-------------------+-----------------------------------------------------|
+| id          | integer           |  not null default nextval('todos_id_seq'::regclass) |
+| description | character varying |  not null                                           |
++-------------+-------------------+-----------------------------------------------------+
+```
+
+We can see the migration consists of adding the column (or dropping it in case a rollback is needed:
+
+```
+def upgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    op.add_column('todos', sa.Column('completed', sa.Boolean(), nullable=False))
+    # ### end Alembic commands ###
+
+
+def downgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    op.drop_column('todos', 'completed')
+    # ### end Alembic commands ###
+```
+
+Next we run the upgrade:
+
+```
+root@a6a29b654607:/usr/src/app# flask db upgrade
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade e9406c44d523 -> 295a929a440f, empty message
+```
+
+Checking the table again, we can see our new column:
+
+```
+postgres@localhost:todoapp> \d todos
++-------------+-------------------+-----------------------------------------------------+
+| Column      | Type              | Modifiers                                           |
+|-------------+-------------------+-----------------------------------------------------|
+| id          | integer           |  not null default nextval('todos_id_seq'::regclass) |
+| description | character varying |  not null                                           |
+| completed   | boolean           |  not null                                           |
++-------------+-------------------+-----------------------------------------------------+
+```
+
+### Flask-Migrate - Part 4
+
+In the previous step our table was empty. To see what working with existing data looks like, we’ll rollback our
+evolution and add some records to the table:
+
+```
+root@a6a29b654607:/usr/src/app# flask db downgrade
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running downgrade 295a929a440f -> e9406c44d523, empty message
+```
+
+```
+postgres@localhost:todoapp> \d todos
++-------------+-------------------+-----------------------------------------------------+
+| Column      | Type              | Modifiers                                           |
+|-------------+-------------------+-----------------------------------------------------|
+| id          | integer           |  not null default nextval('todos_id_seq'::regclass) |
+| description | character varying |  not null                                           |
++-------------+-------------------+-----------------------------------------------------+
+```
+
+```
+postgres@localhost:todoapp> insert into todos values (1, 'kick butt')
+INSERT 0 1
+Time: 0.007s
+postgres@localhost:todoapp> insert into todos values (2, 'chew bubblegum')
+INSERT 0 1
+Time: 0.005s
+```
+
+If we attempt to run the migration again, we’ll get a null constraint error:
+
+```
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 1770, in _execute_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.9/site-packages/sqlalchemy/engine/default.py", line 717, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.NotNullViolation: column "completed" of relation "todos" contains null values
+```
+
+The reason for this is that we set `nullable` to `False` in our Model. Fortunately, `alembic` offers an `execute`
+command, which we can add to our migration. Here we’ll set `nullable` to `True` and `UPDATE` the `completed` column
+to `false` for all rows where `completed` is `null`. Finally, we’ll update the column to re-add the null constraint
+using
+the [`alter_column` method](https://alembic.sqlalchemy.org/en/latest/ops.html#alembic.operations.Operations.alter_column):
+
+```
+def upgrade():
+    # ### commands auto generated by Alembic - please adjust! ###
+    op.add_column('todos', sa.Column('completed', sa.Boolean(), nullable=True))
+    # ### end Alembic commands ###
+    op.execute("UPDATE todos SET completed = false WHERE completed IS NULL;")
+    op.alter_column("todos", "completed", nullable=False)
+```
+
+Our migration is no longer sad:
+
+```
+root@a6a29b654607:/usr/src/app# flask db upgrade
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade e9406c44d523 -> 295a929a440f, empty message
+```
+
+And finally, we can see our default values and null constraint changes worked:
+
+```
+postgres@localhost:todoapp> select * from todos
++------+----------------+-------------+
+| id   | description    | completed   |
+|------+----------------+-------------|
+| 1    | kick butt      | False       |
+| 2    | chew bubblegum | False       |
++------+----------------+-------------+
+
+postgres@localhost:todoapp> \d todos
++-------------+-------------------+-----------------------------------------------------+
+| Column      | Type              | Modifiers                                           |
+|-------------+-------------------+-----------------------------------------------------|
+| id          | integer           |  not null default nextval('todos_id_seq'::regclass) |
+| description | character varying |  not null                                           |
+| completed   | boolean           |  not null                                           |
++-------------+-------------------+-----------------------------------------------------+
+```
+
+### *Always* [RTFM](https://en.wikipedia.org/wiki/RTFM)
+
+* https://alembic.sqlalchemy.org/en/latest/
+* https://flask-migrate.readthedocs.io/en/latest/
