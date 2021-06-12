@@ -16,16 +16,25 @@ from flask_wtf import Form
 from forms import *
 
 # ----------------------------------------------------------------------------#
+# Globals from environment variables
+# ----------------------------------------------------------------------------#
+FLASK_PORT = os.environ.get("FLASK_PORT")
+POSTGRES_HOST = os.environ.get("POSTGRES_HOST")
+POSTGRES_DB = os.environ.get("POSTGRES_DB")
+POSTGRES_USER = os.environ.get("POSTGRES_USER")
+POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD")
+DB_URI = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:5432/{POSTGRES_DB}"
+
+# ----------------------------------------------------------------------------#
 # App Config.
 # ----------------------------------------------------------------------------#
-
-app = Flask(__name__)
+app = Flask(__name__, template_folder="./templates")
 moment = Moment(app)
 app.config.from_object('config')
+app.config["SQLALCHEMY_DATABASE_URI"] = DB_URI
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 db = SQLAlchemy(app)
 
-
-# TODO: connect to a local postgresql database
 
 # ----------------------------------------------------------------------------#
 # Models.

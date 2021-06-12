@@ -1,2 +1,3 @@
-/01_fyyur/node_modules/
-/sql-and-data-modeling/data/
+*/node_modules/
+*secrets*
+*/data/

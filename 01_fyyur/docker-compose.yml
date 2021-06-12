@@ -5,7 +5,7 @@ x-shared-env-files: &shared-env-files
   - secrets.env
 
 services:
-  api_server:
+  fyurr:
     build:
       context: .
       dockerfile: Dockerfile
@@ -27,3 +27,5 @@ services:
     ports:
       - "5432:5432"
     restart: unless-stopped
+    volumes:
+      - ./data:/var/lib/postgresql/data
