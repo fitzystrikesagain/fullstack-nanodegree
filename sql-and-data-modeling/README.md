@@ -1180,3 +1180,144 @@ postgres@localhost:todoapp> \d todos
 
 * https://alembic.sqlalchemy.org/en/latest/
 * https://flask-migrate.readthedocs.io/en/latest/
+
+## Lesson 7: Build a CRUD App with SQLAlchemy
+
+In the final lesson, we’ll cover:
+
+* Update — updating a todo item’s completed state
+* Delete — Removing a todo item
+* Model relationships between objects in SQL and SQLAlchemy
+    * Setting Foreign Key constraints
+* Building CRUD on our todo list items
+* Model many-to-many relationships
+
+## Updating a Todo Item: Part I
+
+Updates involve changing a value in the database. In SQL it looks like this:
+
+```
+UPDATE table_name
+SET column1 = value1, column2 = value2, ...
+WHERE condition;
+```
+
+In SQLAlchemy ORM:
+
+```
+user = User.query.get(some_id)
+user.name = ‘Some new name’
+db.session.commit()
+```
+
+In addition to the for loop we saw earlier, Jinja provides other flow control APIs, such as the `if` statement. Here we
+are creating a list item for each user in `users`, if `users` is defined:
+
+```
+{% if users %}
+<ul>
+{% for user in users %}
+    <li>{{ user.username|e }}</li>
+{% endfor %}
+</ul>
+{% endif %}
+```
+
+We can also use `elif`, as we do in Python:
+
+```
+{% if kenny.sick %}
+    Kenny is sick.
+{% elif kenny.dead %}
+    You killed Kenny!  You bastard!!!
+{% else %}
+    Kenny looks okay --- so far
+{% endif %}
+```
+
+Ifs can be used inline:
+
+```
+{% extends layout_template if layout_template is defined else 'master.html' %}
+```
+
+And in loop filters:
+
+```
+{% for user in users if not user.hidden %}
+    <li>{{ user.username|e }}</li>
+{% endfor %}
+```
+
+[Jinja `if` Docs](http://jinja.pocoo.org/docs/2.10/templates/#if)
+
+Let’s modify our existing list items to display a checkbox, checked if the item is complete:
+
+```
+{% for d in data %}
+<li><input type="checkbox" {% if d.completed %} checked {% endif %} /> {{ d.description}}</li>
+{% endfor %}
+```
+
+We can remove the bullets by cleaning up the CSS:
+
+```
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+```
+
+Then refresh our app:
+![Clean list](../assets/todo_list.png)
+
+Next we’ll want check actions to send a `POST` so that we can update the database. We can add a class to our list item:
+
+```
+<li><input class="check-completed" type="checkbox" {% if d.completed %} checked {% endif %}/> {{ d.description}}
+```
+
+## Updating a Todo Item: Part II
+
+Finally, we’ll want to define a handler for the route. This fetches all `check-completed` elements, loops through them
+logging events as boxes are checked or unchecked, and finally, sending a `POST` to `/todos/set-completed`.
+
+```
+const checkboxes = document.querySelectorAll(".check-completed");
+for (let i = 0; i < checkboxes.length; i++) {
+    const checkbox = checkboxes[i];
+    checkbox.onchange = function (e) {
+        console.log("event", e);
+        const newCompleted = e.target.checked;
+        fetch("/todos/set-completed"), {
+            method: "POST",
+            body: JSON.stringify({
+                "completed": newCompleted
+            }),
+            headers: {
+                "Content-Type": "application/JSON"
+            }
+        }
+    }
+}
+
+```
+
+And update our view so that it updates the model accordingly:
+
+```
+@app.route("/todos/<todo_id>/set-completed", methods=["POST"])
+def set_completed_todo(todo_id):
+    try:
+        completed = request.get_json()["completed"]
+        todo = Todo.query.get(todo_id)
+        todo.completed = completed
+        db.session.commit()
+    except Exception as e:
+        print(e)
+        db.session.rollback()
+    finally:
+        db.session.close()
+    return render_template("index.html", data=Todo.query.all())
+```

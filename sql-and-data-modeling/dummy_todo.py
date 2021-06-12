@@ -36,10 +36,8 @@ def create_todo():
         db.session.add(todo)
         db.session.commit()
         body["description"] = todo.description
-        return jsonify({
-            "description": todo.description
-        })
-    except:
+    except Exception as e:
+        print(e)
         error = True
         db.session.rollback()
         print(sys.exc_info())
@@ -51,6 +49,21 @@ def create_todo():
 
 @app.route("/")
 def index():
+    return render_template("index.html", data=Todo.query.order_by("id").all())
+
+
+@app.route("/todos/<todo_id>/set-completed", methods=["POST"])
+def set_completed_todo(todo_id):
+    try:
+        completed = request.get_json()["completed"]
+        todo = Todo.query.get(todo_id)
+        todo.completed = completed
+        db.session.commit()
+    except Exception as e:
+        print(e)
+        db.session.rollback()
+    finally:
+        db.session.close()
     return render_template("index.html", data=Todo.query.all())
 
 

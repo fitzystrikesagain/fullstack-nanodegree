@@ -10,8 +10,8 @@ services:
     ports:
       - "5432:5432"
     restart: unless-stopped
-#    volumes:
-#      - ./data:/var/lib/postgresql/data
+    volumes:
+      - ./data:/var/lib/postgresql/data
   flask:
     build:
       context: .
