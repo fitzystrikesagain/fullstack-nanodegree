@@ -1,0 +1,17 @@
+version: "3.6"
+
+services:
+  flask:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: flask run -h "0.0.0.0"
+    container_name: flask-api
+    env_file:
+      - .env
+    image: python:3.9.5
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+    volumes:
+      - ./:/usr/src/app/
