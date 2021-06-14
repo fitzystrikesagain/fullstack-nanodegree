@@ -1516,3 +1516,70 @@ end;
 docker cp ./sql/init.sql "$POSTGRES_CONTAINER_NAME":/tmp/init.sql
 docker exec -u "$POSTGRES_USER" "$POSTGRES_CONTAINER_NAME" psql "$POSTGRES_DB" "$POSTGRES_USER" -f /tmp/init.sql
 ```
+
+## Many-To-Many Relationships
+### Types of relationships
+* One to many
+	* A class has many students
+	* A teacher has many students
+* One to one
+	* An account has one user
+	* A passport belongs to one person
+* Many to many
+	* A school teaches many subjects, and a subject is taught in many schools
+
+In one-to-many and one-to-one, the FK is established on the child model. In many-to-many, a special association table stores two FKs  to link the two tables together.
+
+### Setting up many-to-many relationships in SQL
+Assuming two tables `orders` and `products` are both keyed on `id` and require an associative table:
+
+```sql
+CREATE TABLE order_items (
+	order_id REFERENCES orders(id),
+	product_id REFERENCES product(id),
+	quantity INTEGER,
+	PRIMARY KEY (product_id, order_id)
+);
+```
+
+### Setting up many-to-many relationships in ORM
+1. Define an association table using `Table`
+2. Set multiple foreign keys in that table
+3. Map the association table to a parent model using the option `secondary` in `db.relationship`
+
+#### Generalized example
+
+```
+association_table = Table("association", Base.metadata,
+	Column("left_id", Integer, ForeignKey("left.id"))
+	Column("right_id", Integer, ForeignKey("right.id"))
+)
+
+class Parent(Base):
+	__tablename__ = "left"
+	id = Column(Integer, primary_key=True)
+	children = relationship("Child", secondary=association_table)
+
+class Child(Base):
+	__tablename__ = "right"
+	id = Column(Integer, primary_key=True)
+```
+
+#### Example using `product`, `order`, and `order_items`
+
+```
+order_items = db.Table("order_items",
+	db.Column("order_id", db.Integer, db.ForeignKey("order.id"), primary_key=True),
+	db.Column("product_id", db.Integer, db.ForeignKey("product.id"), primary_key=True)
+)
+
+class Order(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	status = db.Column(db.String(), nullable=False)
+	products = db.relationship("Product", secondary=order_items, backref=db.backref("orders", lazy=True))
+
+class Product(db.Model)
+	id = db.Column(db.Integer, primary_key=True)
+	name = db.Column(db.String(), nullable=False)
+```
+
