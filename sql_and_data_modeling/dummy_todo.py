@@ -1,20 +1,17 @@
-import os
 import sys
 
-from flask import Flask, render_template, request, jsonify, redirect, url_for
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
+from flask import render_template, request, jsonify, redirect, url_for
 
-from config import create_app, get_conn_string, FLASK_PORT
-from models import Order, Todo, TodoList
+from config import create_app, create_db, FLASK_PORT
+from models import Todo, TodoList
 
 
 """
 Flask and SQLAlchemy config
 """
 app = create_app()
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
+db, migrate = create_db()
+db.init_app(app)
 
 
 @app.route("/")
