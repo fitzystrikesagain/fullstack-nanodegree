@@ -18,7 +18,8 @@ FLASK_PORT = os.environ.get("FLASK_PORT")
 Flask and SQLAlchemy config
 """
 app = Flask(__name__, template_folder="./templates")
-app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}/{POSTGRES_DB}"
+app.config[
+    "SQLALCHEMY_DATABASE_URI"] = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}/{POSTGRES_DB}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
@@ -51,6 +52,11 @@ class TodoList(db.Model):
         return f"<TodoList id: {self.id}, name: {self.name}>"
 
 
+@app.route("/")
+def index():
+    return redirect(url_for("get_list_todos", list_id=1))
+
+
 @app.route("/todos/create", methods=["POST"])
 def create_todo():
     error = False
@@ -72,9 +78,14 @@ def create_todo():
         return jsonify(body)
 
 
-@app.route("/")
-def index():
-    return render_template("index.html", data=Todo.query.order_by("id").all())
+@app.route("/lists/<int:list_id>")
+def get_list_todos(list_id):
+    return render_template(
+        template_name_or_list="index.html",
+        lists=TodoList.query.all(),
+        todos=Todo.query.filter_by(list_id=list_id).order_by("id").all(),
+        active_list=TodoList.query.get(list_id)
+    )
 
 
 @app.route("/todos/<todo_id>/set-completed", methods=["POST"])

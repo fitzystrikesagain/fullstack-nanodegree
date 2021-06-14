@@ -2,12 +2,13 @@
 <head>
     <link rel="icon"
           type="image/png"
-          href="https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.clipartkey.com%2Fmpngs%2Fm%2F145-1450089_python-flask-icon.png&f=1&nofb=1">
+          href="https://www.clipartkey.com/mpngs/m/145-1450089_python-flask-icon.png">
     <title>Todo App</title>
     <style>
         .error {
             display: none;
         }
+
         ul {
             list-style: none;
             padding: 0;
@@ -29,24 +30,44 @@
             font-size: 20px;
         }
 
+        .lists-wrapper, .todos-wrapper {
+            display: inline-block;
+            vertical-align: top;
+            width: 300px;
+        }
+
     </style>
 </head>
 <body>
-<form id="form">
-    <input type="text" id="description" name="description"/>
-    <input type="submit" name="Create" value="Add todo"/>
-</form>
-<div id="error" class="error">Something went wrong!</div>
-<h1>Todo list</h1>
-<ul id="todos">
-    {% for d in data %}
-    <li>
-        <input class="check-completed" data-id="{{ d.id }}" type="checkbox" {% if d.completed %} checked {% endif %}/>
-        {{ d.description}}
-        <button class="dismiss-todo">&cross;</button>
-    </li>
-    {% endfor %}
-</ul>
+<div class="lists-wrapper">
+    <ul id="lists">
+        {% for list in lists %}
+        <li>
+            <a href="/lists/{{ list.id }}">{{ list.name }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+<div class="todos-wrapper">
+    <h4>{{ active_list.name }}</h4>
+    <form id="form">
+        <input type="text" id="description" name="description"/>
+        <input type="submit" name="Create" value="Add todo"/>
+    </form>
+    <div id="error" class="error">Something went wrong!</div>
+    <h1>Todo list</h1>
+    <ul id="todos">
+        {% for todo in todos %}
+        <li>
+            <input class="check-completed"
+                   data-id="{{ todo.id }}"
+                   type="checkbox" {% if todo.completed %} checked {% endif %}/>
+            {{ todo.description}}
+            <button class="dismiss-todo">&cross;</button>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
 <script>
 
     const deletedTodos = document.querySelectorAll(".dismiss-todo");
