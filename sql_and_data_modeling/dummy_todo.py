@@ -44,6 +44,25 @@ def create_todo():
         db.session.close()
     if not error:
         return jsonify(body)
+    return {}
+
+
+@app.route("/api/todos/create", methods=["POST"])
+def create_todo_api():
+    error = False
+    try:
+        data = request.get_json()
+        desc, list_id = data["description"], data["list_id"]
+        todo = Todo(description=desc, list_id=list_id)
+        db.session.add(todo)
+        db.session.commit()
+    except Exception as e:
+        print(e, file=sys.stderr)
+        error = True
+    finally:
+        db.session.close()
+    if not error:
+        return jsonify(data)
 
 
 @app.route("/lists/<int:list_id>")
