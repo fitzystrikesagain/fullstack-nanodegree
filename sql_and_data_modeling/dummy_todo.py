@@ -5,11 +5,20 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
-from config import SQLALCHEMY_DATABASE_URI as DB_URI
-
+"""
+Postgres config
+"""
+POSTGRES_USER = os.environ.get("POSTGRES_USER", "postgres")
+POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD", "postgres")
+POSTGRES_HOST = os.environ.get("POSTGRES_CONTAINER_NAME", "postgres-fsnd")
+POSTGRES_DB = os.environ.get("POSTGRES_DB", "todoapp")
 FLASK_PORT = os.environ.get("FLASK_PORT")
+
+"""
+Flask and SQLAlchemy config
+"""
 app = Flask(__name__, template_folder="./templates")
-app.config["SQLALCHEMY_DATABASE_URI"] = DB_URI
+app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}/{POSTGRES_DB}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
