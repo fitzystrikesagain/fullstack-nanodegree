@@ -23,8 +23,8 @@ def index():
     return redirect(url_for("get_list_todos", list_id=1))
 
 
-@app.route("/todos/lists/<list_id>/create", methods=["POST"])
-def create_todo(list_id):
+@app.route("/todos/create", methods=["POST"])
+def create_todo():
     error = False
     body = {}
     try:
@@ -34,6 +34,7 @@ def create_todo(list_id):
         db.session.add(todo)
         db.session.commit()
         body["description"] = todo.description
+        body["list_id"] = todo.list_id
     except Exception as e:
         print(e)
         error = True
