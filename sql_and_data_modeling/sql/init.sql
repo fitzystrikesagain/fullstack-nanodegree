@@ -13,6 +13,3 @@ on conflict (id) do update
         name = 'urgent';
 
 end;
-
-select * from todo_lists;
-select * from todos;
