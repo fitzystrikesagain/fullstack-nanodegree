@@ -2,14 +2,26 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://udacitystudios@localhost:5432/example'
 db = SQLAlchemy()
+
+order_items = db.Table(
+    "order_items",
+    db.Column("order_id", db.Integer, db.ForeignKey("orders.id"), primary_key=True),
+    db.Column("product_id", db.Integer, db.ForeignKey("products.id"), primary_key=True)
+)
 
 
 class Order(db.Model):
+    __tablename__ = "orders"
     id = db.Column(db.Integer, primary_key=True)
     status = db.Column(db.String, nullable=False)
-    # products = db.relationship("Product", secondary=order_items, backref=db.backref("orders", lazy=True))
+    products = db.relationship("Product", secondary=order_items, backref=db.backref("orders", lazy=True))
+
+
+class Product(db.Model):
+    __tablename__ = "products"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
 
 
 class Todo(db.Model):
