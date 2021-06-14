@@ -5,51 +5,16 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
-"""
-Postgres config
-"""
-POSTGRES_USER = os.environ.get("POSTGRES_USER", "postgres")
-POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD", "postgres")
-POSTGRES_HOST = os.environ.get("POSTGRES_CONTAINER_NAME", "postgres-fsnd")
-POSTGRES_DB = os.environ.get("POSTGRES_DB", "todoapp")
-FLASK_PORT = os.environ.get("FLASK_PORT")
+from config import create_app, get_conn_string, FLASK_PORT
+from models import Order, Todo, TodoList
+
 
 """
 Flask and SQLAlchemy config
 """
-app = Flask(__name__, template_folder="./templates")
-app.config[
-    "SQLALCHEMY_DATABASE_URI"] = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}/{POSTGRES_DB}"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
+app = create_app()
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
-
-
-class Todo(db.Model):
-    """
-    Create a todos table id, description, completed, and list_id, which is an index into the todos_list table
-    """
-    __tablename__ = "todos"
-    id = db.Column(db.Integer, primary_key=True)
-    description = db.Column(db.String, nullable=False)
-    completed = db.Column(db.Boolean, nullable=False, default=False)
-    list_id = db.Column(db.Integer, db.ForeignKey("todo_lists.id"), nullable=False, default=1)
-
-    def __repr(self):
-        return f"<Todo id: {self.id}, description: {self.description}, completed: {self.completed}>"
-
-
-class TodoList(db.Model):
-    """
-    Create a todo_list table with id, name, and a relationship with the todos table
-    """
-    __tablename__ = "todo_lists"
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
-    todos = db.relationship("Todo", backref="list", lazy=True)
-
-    def __repr__(self):
-        return f"<TodoList id: {self.id}, name: {self.name}>"
 
 
 @app.route("/")
@@ -57,13 +22,14 @@ def index():
     return redirect(url_for("get_list_todos", list_id=1))
 
 
-@app.route("/todos/create", methods=["POST"])
-def create_todo():
+@app.route("/todos/lists/<list_id>/create", methods=["POST"])
+def create_todo(list_id):
     error = False
     body = {}
     try:
         description = request.get_json()["description"]
-        todo = Todo(description=description)
+        list_id = int(request.get_json()["listId"])
+        todo = Todo(description=description, list_id=list_id)
         db.session.add(todo)
         db.session.commit()
         body["description"] = todo.description
