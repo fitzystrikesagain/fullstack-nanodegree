@@ -98,7 +98,7 @@ program (a web browser, for instance) that can request data from the server.
 A database client is any program that can send a request to a database. The web server can simultaneously be a client of
 the database.
 
-```
+```text
 Client ---> Server ---> Database
 ```
 
@@ -158,7 +158,7 @@ ORM) library, which provides an OOP interface for database interactions.
 
 A `CREATE TABLE` statement like the following:
 
-```
+```postgresql
 CREATE TABLE todos (
 	id INTEGER PRIMARY KEY,
 	description VARCHAR NOT NULL,
@@ -168,7 +168,7 @@ CREATE TABLE todos (
 
 can be written in SQLAlchemy like this:
 
-```
+```python
 # Our todo table inherits from SQLAlchemy's db model
 class Todo(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
@@ -178,13 +178,13 @@ class Todo(db.Model):
 
 A query like this:
 
-```
+```postgresql
 SELECT * FROM todos
 ```
 
 becomes this, which has the additional benefit of being dialect-agnostic:
 
-```
+```python
 Todo.query.all()
 ```
 
@@ -230,7 +230,7 @@ started. This reduces dropped connections and helps avoid making many small chan
 The Engine is one of three main layers for how we interact with the database. It is the lowest layer of database
 interaction and is similar to using `psycopg2` to manage a connection directly.
 
-```
+```python
 from sqlalchemy import create_engine
 
 engine = create_engin("postgres://...")
@@ -252,7 +252,7 @@ result.close()
 
 Instead of sending raw SQL using the Engine, we can build Python objects:
 
-```
+```python
 # Instantiate a table
 todos = Table("todos", ...)
 
@@ -284,15 +284,15 @@ SQLAlchemy is split into two libraries:
 
 * SQLAlchemy Core
 * SQLAlchemy ORM: offered as an optional library
-    * ORM uses the Core library inside
-    * Lets us map from the database schema to the application’s objects
-      ![Layers of Abstraction Diagram](./assets/layers_of_abstraction_overview.png)
+  * ORM uses the Core library inside
+  * Lets us map from the database schema to the application’s objects
+    ![Layers of Abstraction Diagram](./assets/layers_of_abstraction_overview.png)
 
 ### Mapping Between Tables and Classes
 
 In Python we instantiate a class like this:
 
-```
+```python
 class Human:
 	def __init__(self, first_name, last_name, age):
 		self.first_name = first_name
@@ -302,14 +302,14 @@ class Human:
 
 and create objects as instances of that class like this:
 
-```
+```python
 sarah = Human("Sarah", "Silverman", 48)
 bob = Human("Bob", "Saget", 54)
 ```
 
 In SQL we may create a similar table like this:
 
-```
+```postgresql
 CREATE TABLE human (
 	id INTEGER PRIMARY KEY,
 	first_name VARCHAR,
@@ -338,7 +338,7 @@ A SQLAlchemy URI looks like this:
 
 To add a SQLAlchemy connection to our Flask app, we need to do the following:
 
-```
+```python
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
@@ -351,7 +351,12 @@ db = SQLAlchemy(app)
 
 Given an instance of the SQLAlchemy class from Flask-SQLAlchemy,
 
-```
+```python
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+
+app = Flask(__name__)
+
 db = SQLAlchemy(app)
 ```
 
@@ -369,7 +374,7 @@ integer column set as the primary key.
 We’ll finish off creating a Hello App that says hello to our name by inserting a record into the persons table in our
 database, and showing the person’s name on the index route.
 
-```
+```bash
 postgres@localhost:mydb> INSERT INTO persons (name) VALUES ('Fitzy');
 INSERT 0 1
 Time: 0.019s
@@ -385,8 +390,8 @@ Exercise [here](./flask-hello-app.py)
 
 ### Experimenting in Interactive Mode
 
-```
-We can insert new records into the database using SQLAlchemy by running
+```python
+# We can insert new records into the database using SQLAlchemy by running
 person = Person(name=‘Amy’)
 db.session.add(person)
 db.session.commit()
@@ -412,10 +417,10 @@ Check out the SQLAlchemy docs on Column and Data Types to learn more.
 * Constraints are conditions on your column, that provide checks on the data’s validity. It does not allow data that
   violates constraints to be inserted into the database (it will raise an error if you attempt to).
 * In SQLAlchemy, constraints are set in `db.Column()` after setting the data type.
-    * `nullable=False` is equivalent to `NOT NULL` in SQL
-    * `unique=True` is equivalent to `UNIQUE` in SQL Example
+  * `nullable=False` is equivalent to `NOT NULL` in SQL
+  * `unique=True` is equivalent to `UNIQUE` in SQL Example
 
-```
+```python
 class User(db.Model):
   …
   name = db.Column(db.String(), nullable=False, unique=True)
@@ -434,7 +439,7 @@ class User(db.Model):
 
 We can import the db object and Person class to introspect the table in Python
 
-```
+```bash
 Python 3.9.5 (default, May 12 2021, 15:26:36)
 Type 'copyright', 'credits' or 'license' for more information
 IPython 7.24.1 -- An enhanced Interactive Python. Type '?' for help.
@@ -474,7 +479,7 @@ IPython 7.24.1 -- An enhanced Interactive Python. Type '?' for help.
 The query object exists on a given model defined by us. It is the source of all select statements generated by the ORM.
 Here are the most common methods:
 
-```
+```python
 # Select * from persons where name = 'Amy'
 Person.query.filter_by(name="Amy")
 
@@ -494,13 +499,13 @@ Person.query.get(1)
 
 Query enables easy bulk operations as well:
 
-```
+```python
 Product.query.filter_by(category="Misc").delete()
 ```
 
 Finally, query provides method chaining:
 
-```
+```python
 Person.query \
 	.filter(Person.name == "Amy") \
 	.filter(Team.name == "Udacity") \
@@ -514,7 +519,7 @@ Driver.query \
 
 There are two ways to access the query object:
 
-```
+```python
 Person.query
 is the same as
 db.session.query(Person)
@@ -528,7 +533,7 @@ session.query(Person).join(Team)
 
 #### Review and other useful methods:
 
-```
+```python
 # All records
 MyModel.query.all()
 
@@ -573,7 +578,7 @@ Driver.query.join('vehicles')
 
 We can insert new records like
 
-```
+```python
 person = Person(name="Amy")
 db.session.add(person)
 db.session.commit()
@@ -606,13 +611,13 @@ In this section we’ll apply what we’ve learned so far to build a fully funct
 CRUD:
 
 * CREATE —> `INSERT`
-    * Creating new records, e.g., `db.session.add(user1)`
+  * Creating new records, e.g., `db.session.add(user1)`
 * READ —> `SELECT`
-    * Reading records from user’s perspective, e.g., `User.query.all()`
+  * Reading records from user’s perspective, e.g., `User.query.all()`
 * UPDATE —> `UPDATE`
-    * User makes changes to something that already exists, e.g., `user1.foo = ’new value`
+  * User makes changes to something that already exists, e.g., `user1.foo = ’new value`
 * DELETE —> `DELETE`
-    * User deletes something, e.g., `db.session.delete(user1)`
+  * User deletes something, e.g., `db.session.delete(user1)`
 
 We’ll also:
 
@@ -664,27 +669,27 @@ There are three ways to get user data from the view:
 
 1. URL query parameters: `foo?field1=value1` and parsing them with `request.args`:
 
-```
+```python
 value1 = request.args.get("field1")
 ```
 
 2. Using web forms and `request.form`:
 
-```
+```python
 username = request.form.get("username")
 password = request.form.get("password")
 ```
 
 3. Received JSON at the endpoint using `request.data`:
 
-```
+```python
 data_string = request.data
 data_dictionary = json.loads(data_string)
 ```
 
 `request.args.get` and `requests.form.get` both accept an optional second parameter:
 
-```
+```python
 request.args.get("foo", "my_default")
 ```
 
@@ -694,17 +699,17 @@ Forms take an `action`, which corresponds to the name of the route, and a `metho
 
 * Data requests are either synchronous or asynchronous
 * Async data requests are requests that get sent to the server and back to the client without a page refresh
-    * This might be done using Axios or JQuery
+  * This might be done using Axios or JQuery
 * Async requests (AJAX requests) use one of two methods:
-    * `XMLHttpRequest`
-        * Uses window object, which is natively available on the browser
-    * Fetch (the modern way)
+  * `XMLHttpRequest`
+    * Uses window object, which is natively available on the browser
+  * Fetch (the modern way)
 
 #### `XMLHttpRequest`
 
 Client-side code typically looks something like this when using `XMLHttpRequest ` to send AJAX requests:
 
-```
+```javascript
 // Build request object
 var xhttp = new XMLHttpRequest();
 
@@ -721,7 +726,7 @@ xhttp.send();
 
 In async requests, we need to react to the server on the client side. To update the loaded DOM client-side:
 
-```
+```javascript
 xhttp.onreadystatechange = function() {
 	if (this.readyState === 4 && this.status === 200) {
 		// on successful response
@@ -738,7 +743,7 @@ away from the developer.
 Fetch is the more modern approach. It’s another window object that allows us to easily send requests and specify
 parameters, headers, and the body.
 
-```
+```javascript
 fetch("/my/request", {
 	method: "POST",
 	body: JSON.stringify({
@@ -758,7 +763,7 @@ transaction will cause an implicit commit.
 
 We can wrap our commit inside a `try` `except` block:
 
-```
+```python
 import sys
 
 try:
@@ -787,8 +792,8 @@ evolutions.
 
 * Migrations deal with how we manage schema modifications over time
 * Mistakes are costly and can cause production incidents. We want to be able to:
-    * Quickly roll back mistakes
-    * Test changes before we make them
+  * Quickly roll back mistakes
+  * Test changes before we make them
 * A migration file keeps track of a set of changes to our database schema(s). This offers rough VC for data over time
 
 Migrations stack together to form the latest version of our database schema. We can upgrade by applying migrations and
@@ -799,7 +804,7 @@ can roll back by reverting migrations
 Migrations are typically stored in a migrations folder. There should be a one-to-one mapping between the changes we’re
 making and the migration files:
 
-```
+```bash
 migrations/
 	add_tables_001.py
 	add_column_to_todos_002.py
@@ -808,7 +813,7 @@ migrations/
 
 They are applied using command line scripts:
 
-```
+```bash
 $ db migrate    # create a migrations script template to fill out
 $ db upgrade    # apply unapplied migrations
 $ db downgrade  # rollback applied migrations
@@ -832,19 +837,19 @@ Migration steps:
 
 Install Flask-Migrate:
 
-```
+```python
 pip install Flask-Migrate
 ```
 
 Add the import:
 
-```
+```python
 from flask_migrate import Migrate
 ```
 
 Instantiate the Migration object after the `db` definition:
 
-```
+```python
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 
@@ -861,20 +866,20 @@ Relevant docs:
 
 Create the migrations directory, config, and scripts:
 
-```
+```bash
 flask db init
 ```
 
 This will add a *migrations* folder to the application (which should be committed to VC). If there isn’t named
 an `app.py` or `wsgi.py` module, then `FLASK_APP` needs to be set:
 
-```
+```bash
 Error: Could not locate a Flask application. You did not provide the "FLASK_APP" environment variable, and a "wsgi.py" or "app.py" module was not found in the current directory.
 ```
 
 In our case:
 
-```
+```bash
 root@24994f6ed3ba:/usr/src/app# export FLASK_APP=/usr/src/app/dummy_todo.py
 root@24994f6ed3ba:/usr/src/app# flask db init
   Creating directory /usr/src/app/migrations ...  done
@@ -889,26 +894,26 @@ root@24994f6ed3ba:/usr/src/app# flask db init
 
 Generate an initial migration:
 
-```
+```bash
 flask db migrate -m "Initial migration."
 ```
 
 If anything goes wrong, we can stop Postgres to close existing connections. MacOS:
 
-```
+```bash
 $ brew services start postgresql
 $ brew services stop postgresql
 ```
 
 Docker
 
-```
+```bash
 docker restart <container_name>
 ```
 
 Otherwise, Postgres-native:
 
-```
+```bash
 pg_ctl -D /usr/local/var/postgres stop
 pg_ctl -D /usr/local/var/postgres start
 ```
@@ -916,14 +921,14 @@ pg_ctl -D /usr/local/var/postgres start
 We want our first migration script to capture the creation of the `todos` table, so we should first drop and recreate
 the `todoapp` db:
 
-```
+```bash
 root@postgres-fsnd:/# dropdb todoapp -U postgres
 root@postgres-fsnd:/# createdb todoapp -U postgres
 ```
 
 When we run the first migrate, `alembic` detects the difference between the Flask model and the database:
 
-```
+```bash
 root@a6a29b654607:/usr/src/app# flask db migrate
 INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
 INFO  [alembic.runtime.migration] Will assume transactional DDL.
@@ -933,14 +938,14 @@ INFO  [alembic.autogenerate.compare] Detected added table 'todos'
 
 Flask-Migrate then adds a new migration script to the `migrations/versions/` directory:
 
-```
+```bash
 root@a6a29b654607:/usr/src/app# ls migrations/versions/
 __pycache__  e9406c44d523_.py
 ```
 
 Inspecting this migration, we can see the evolution that creates the `todos` table:
 
-```
+```bash
 root@a6a29b654607:/usr/src/app# cat migrations/versions/e9406c44d523_.py
 """empty message
 
@@ -980,7 +985,7 @@ def downgrade():
 
 Flask-Migrate commands:
 
-```
+```bash
 $ flask db init
 Create migrations directory and config
 
@@ -996,7 +1001,7 @@ Run the downgrade command in the migration file to roll back the migration
 
 Running an upgrade will create the `todos` table:
 
-```
+```bash
 root@a6a29b654607:/usr/src/app# flask db upgrade
 INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
 INFO  [alembic.runtime.migration] Will assume transactional DDL.
@@ -1018,7 +1023,7 @@ should leave it alone.
 
 Now we’ll add the `completed` column to our Model:
 
-```
+```python
 class Todo(db.Model):
     """
     Create a todos table with dolumns id and description
@@ -1031,7 +1036,7 @@ class Todo(db.Model):
 
 Running `migrate` again shows us the detected changes and generations another migration script:
 
-```
+```bash
 root@a6a29b654607:/usr/src/app# flask db migrate
 INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
 INFO  [alembic.runtime.migration] Will assume transactional DDL.
@@ -1042,7 +1047,7 @@ INFO  [alembic.autogenerate.compare] Detected added column 'todos.completed'
 
 Note that our table has not been updated yet:
 
-```
+```bash
 postgres@localhost:todoapp> \d todos
 +-------------+-------------------+-----------------------------------------------------+
 | Column      | Type              | Modifiers                                           |
@@ -1054,7 +1059,7 @@ postgres@localhost:todoapp> \d todos
 
 We can see the migration consists of adding the column (or dropping it in case a rollback is needed:
 
-```
+```python
 def upgrade():
     # ### commands auto generated by Alembic - please adjust! ###
     op.add_column('todos', sa.Column('completed', sa.Boolean(), nullable=False))
@@ -1069,7 +1074,7 @@ def downgrade():
 
 Next we run the upgrade:
 
-```
+```bash
 root@a6a29b654607:/usr/src/app# flask db upgrade
 INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
 INFO  [alembic.runtime.migration] Will assume transactional DDL.
@@ -1078,7 +1083,7 @@ INFO  [alembic.runtime.migration] Running upgrade e9406c44d523 -> 295a929a440f, 
 
 Checking the table again, we can see our new column:
 
-```
+```bash
 postgres@localhost:todoapp> \d todos
 +-------------+-------------------+-----------------------------------------------------+
 | Column      | Type              | Modifiers                                           |
@@ -1094,14 +1099,14 @@ postgres@localhost:todoapp> \d todos
 In the previous step our table was empty. To see what working with existing data looks like, we’ll rollback our
 evolution and add some records to the table:
 
-```
+```bash
 root@a6a29b654607:/usr/src/app# flask db downgrade
 INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
 INFO  [alembic.runtime.migration] Will assume transactional DDL.
 INFO  [alembic.runtime.migration] Running downgrade 295a929a440f -> e9406c44d523, empty message
 ```
 
-```
+```bash
 postgres@localhost:todoapp> \d todos
 +-------------+-------------------+-----------------------------------------------------+
 | Column      | Type              | Modifiers                                           |
@@ -1111,7 +1116,7 @@ postgres@localhost:todoapp> \d todos
 +-------------+-------------------+-----------------------------------------------------+
 ```
 
-```
+```bash
 postgres@localhost:todoapp> insert into todos values (1, 'kick butt')
 INSERT 0 1
 Time: 0.007s
@@ -1122,7 +1127,7 @@ Time: 0.005s
 
 If we attempt to run the migration again, we’ll get a null constraint error:
 
-```
+```bash
 Traceback (most recent call last):
   File "/usr/local/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 1770, in _execute_context
     self.dialect.do_execute(
@@ -1137,7 +1142,7 @@ to `false` for all rows where `completed` is `null`. Finally, we’ll update the
 using
 the [`alter_column` method](https://alembic.sqlalchemy.org/en/latest/ops.html#alembic.operations.Operations.alter_column):
 
-```
+```python
 def upgrade():
     # ### commands auto generated by Alembic - please adjust! ###
     op.add_column('todos', sa.Column('completed', sa.Boolean(), nullable=True))
@@ -1148,7 +1153,7 @@ def upgrade():
 
 Our migration is no longer sad:
 
-```
+```bash
 root@a6a29b654607:/usr/src/app# flask db upgrade
 INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
 INFO  [alembic.runtime.migration] Will assume transactional DDL.
@@ -1157,7 +1162,7 @@ INFO  [alembic.runtime.migration] Running upgrade e9406c44d523 -> 295a929a440f, 
 
 And finally, we can see our default values and null constraint changes worked:
 
-```
+```bash
 postgres@localhost:todoapp> select * from todos
 +------+----------------+-------------+
 | id   | description    | completed   |
@@ -1188,7 +1193,7 @@ In the final lesson, we’ll cover:
 * Update — updating a todo item’s completed state
 * Delete — Removing a todo item
 * Model relationships between objects in SQL and SQLAlchemy
-    * Setting Foreign Key constraints
+  * Setting Foreign Key constraints
 * Building CRUD on our todo list items
 * Model many-to-many relationships
 
@@ -1196,7 +1201,7 @@ In the final lesson, we’ll cover:
 
 Updates involve changing a value in the database. In SQL it looks like this:
 
-```
+```postgresql
 UPDATE table_name
 SET column1 = value1, column2 = value2, ...
 WHERE condition;
@@ -1204,7 +1209,7 @@ WHERE condition;
 
 In SQLAlchemy ORM:
 
-```
+```python
 user = User.query.get(some_id)
 user.name = ‘Some new name’
 db.session.commit()
@@ -1213,7 +1218,7 @@ db.session.commit()
 In addition to the for loop we saw earlier, Jinja provides other flow control APIs, such as the `if` statement. Here we
 are creating a list item for each user in `users`, if `users` is defined:
 
-```
+```html
 {% if users %}
 <ul>
 {% for user in users %}
@@ -1225,7 +1230,7 @@ are creating a list item for each user in `users`, if `users` is defined:
 
 We can also use `elif`, as we do in Python:
 
-```
+```html
 {% if kenny.sick %}
     Kenny is sick.
 {% elif kenny.dead %}
@@ -1237,13 +1242,13 @@ We can also use `elif`, as we do in Python:
 
 Ifs can be used inline:
 
-```
+```html
 {% extends layout_template if layout_template is defined else 'master.html' %}
 ```
 
 And in loop filters:
 
-```
+```html
 {% for user in users if not user.hidden %}
     <li>{{ user.username|e }}</li>
 {% endfor %}
@@ -1253,7 +1258,7 @@ And in loop filters:
 
 Let’s modify our existing list items to display a checkbox, checked if the item is complete:
 
-```
+```html
 {% for d in data %}
 <li><input type="checkbox" {% if d.completed %} checked {% endif %} /> {{ d.description}}</li>
 {% endfor %}
@@ -1261,7 +1266,7 @@ Let’s modify our existing list items to display a checkbox, checked if the ite
 
 We can remove the bullets by cleaning up the CSS:
 
-```
+```html
 ul {
     list-style: none;
     padding: 0;
@@ -1274,7 +1279,7 @@ Then refresh our app:
 
 Next we’ll want check actions to send a `POST` so that we can update the database. We can add a class to our list item:
 
-```
+```html
 <li><input class="check-completed" type="checkbox" {% if d.completed %} checked {% endif %}/> {{ d.description}}
 ```
 
@@ -1283,7 +1288,7 @@ Next we’ll want check actions to send a `POST` so that we can update the datab
 Finally, we’ll want to define a handler for the route. This fetches all `check-completed` elements, loops through them
 logging events as boxes are checked or unchecked, and finally, sending a `POST` to `/todos/set-completed`.
 
-```
+```javascript
 const checkboxes = document.querySelectorAll(".check-completed");
 for (let i = 0; i < checkboxes.length; i++) {
     const checkbox = checkboxes[i];
@@ -1306,7 +1311,7 @@ for (let i = 0; i < checkboxes.length; i++) {
 
 And update our view so that it updates the model accordingly:
 
-```
+```python
 @app.route("/todos/<todo_id>/set-completed", methods=["POST"])
 def set_completed_todo(todo_id):
     try:
@@ -1320,4 +1325,194 @@ def set_completed_todo(todo_id):
     finally:
         db.session.close()
     return render_template("index.html", data=Todo.query.all())
+```
+
+## DELETE a Todo item - Exercise
+In this exercise, we’ll be adding an “X” next to each todo item. Clicking on the X will delete the todo from both the database and frontend. In SQL, we’d perform a delete like this:
+```postgresql
+DELETE FROM table
+WHERE condition;
+```
+In ORM:
+```python
+todo = Todo.query.get(todo_id)
+db.session.delete(todo)  # or...
+Todo.query.filter_by(id=todo_id).delete()
+db.session.commit()
+```
+
+To add delete functionality to our todo list, we’ll need to implement something like:
+* Loop through each todo and show a delete button
+* Send a delete request when a button is clicked. The request needs to contain the `todo_id`
+* Controller takes user input and notifies model of method and id
+* Controller notifies view to refresh page and redirect to homepage, showing fresh fetch of all remaining todos
+
+## Intro: Modeling Relationships
+Real-world apps are never as simple as our todo list. Instead, they model complex relational connections. Our simple CRUD operations have to be extended to related model objects for cases like:
+* Removing a user’s documents and photos when they delete their account
+* Deleting all the threads in a discussion when the discussion itself is deleted
+* Deactivating an AirBnB’s host should deactivate their listings
+* Accessing a blog post should access all its comments
+
+## Review: Relationships & Joins
+*  [SQL Joins Explained](http://www.sql-join.com/sql-join-types)
+*  [SQL | Join (Inner, Left, Right and Full Joins) — GeeksforGeeks](https://www.geeksforgeeks.org/sql-join-set-1-inner-left-right-and-full-joins/)
+
+## `db.relationship`
+With SQLAlchemy we can define the relationship mapping once, and the join is provided for us after that. `db.relationship` is the interface for configuring a relational mapping between two models. It’s defined on the parent model and sets:
+* the name of its children, e.g., `parent1.children`
+* the name of a parent on a child using `backref`, e.g., `child1.my_amazing_parent`
+```python
+class SomeParent(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	name = db.Column(db.String(50), nullable=False)
+	children = db.relationship("SomeChild", backref="some_parent")
+
+child1 = SomeChild(name="Andrew")
+child1.some_parent. # Name of the backref returns the parent object
+```
+
+### `db.relationship` Resources
+*  [Flask-SQLAlchemy - Simple Relationships](https://flask-sqlalchemy.palletsprojects.com/en/2.x/quickstart/#simple-relationships)
+*  [SQLAlchemy Docs: Relationship API](https://docs.sqlalchemy.org/en/latest/orm/relationship_api.html#sqlalchemy.orm.relationship)
+
+## Configuring Relationships
+Since joins are expensive, when we load the parents is important. Delays over 150ms are noticeable, so we should make joins happen in a time and place that doesn’t disrupt the UX.
+
+### Lazy loading vs. Eager loading
+Lazy loading only loads joined assets when they are needed. There’s no initial wait time, but the wait time when the assets are called can be longer. Doing this frequently  is bad. Lazy loading is the default but can be changed here:
+```python
+children = db.relationship('ChildModel', backref='some_parent', lazy=True)
+```
+
+Eager loading loads all needed joined objects, all at once. This will reduce further queries to the database and speed up response times. The downside is that loading the table has a longer upfront load time.
+### Other loading options
+[SQLAlchemy Docs on Relationship Loading](https://docs.sqlalchemy.org/en/latest/orm/loading_relationships.html)
+
+### Other relationship options
+There are [very many relationship options](https://docs.sqlalchemy.org/en/13/orm/relationship_api.html#sqlalchemy.orm.relationship):
+```python
+function sqlalchemy.orm.relationship(argument, secondary=None, primaryjoin=None, secondaryjoin=None, foreign_keys=None, uselist=None, order_by=False, backref=None, back_populates=None, post_update=False, cascade=False, extension=None, viewonly=False, lazy='select', collection_class=None, passive_deletes=False, passive_updates=True, remote_side=None, enable_typechecks=True, join_depth=None, comparator_factory=None, single_parent=False, innerjoin=False, distinct_target_key=None, doc=None, active_history=False, cascade_backrefs=True, load_on_pending=False, bake_queries=True, _local_remote_pairs=None, query_class=None, info=None, omit_join=None, sync_backref=None)¶
+```
+Two of the more helpful ones are `collection_class`, which determines the data type of the children collection, and `cascade`, which can trigger cascading deletes or updates from parent to child:
+```python
+class Parent(db.Model):
+    __tablename__ = "parents"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    children = db.relationship(
+        "Child",
+        backref="parent",
+        lazy=True,
+        collection_class=list,
+        cascade="save-update"  # or all or delete-orphan
+    )
+
+```
+## Foreign Key Constraint Setup
+
+`db.relationship` allows us to identify table relationships between table, but doesn’t set up FK constraints for us. We need to add a column `some_parent_id` on the child model that has the FK constraint. The relationships are then linked with `backref` -> `child1.some_parent`. We we still set `db.relationship` on the **parent** model, but the foreign key constraint goes on the **child** model. Finally, a foreign key constraint prefers referential integrity by ensuring that a FK always maps to the PK in the parent table.
+
+In SQL:
+```postgresql
+CREATE TABLE vehicles (
+	id INTEGER PRIMARY KEY,
+	make VARCHAR NOT NULL,
+	model VARCHAR NOT NULL,
+	year INTEGER NOT NULL,
+	driver_id REFERENCES drivers(id)
+);
+```
+
+With ORM:
+
+```python
+class SomeParent(db.Model):
+	__tablename__ = "some_parents"
+	id = db.Column(db.Integer, primary_key=True)
+
+
+class SomeChild(db.Model):
+	__tablename__ = "some_children"
+	id = db.Column(db.Integer, primary_key=True)
+	name = db.Column(db.String(50), nullable=False)
+	some_parent_id = db.Column(db.Integer, db.ForeignKey("some_parents.id", nullable=False)
+```
+
+[SQLAlchemy Docs on Defining Constraints](https://docs.sqlalchemy.org/en/latest/core/constraints.html)
+
+## One-to-Many Relationship Setup
+Now that we understand how SQLAlchemy leverages relationships and foreign keys to recognize relational relationships, we’re going to apply this to our todos app by creating lists to categorize our todos. A list may have many todos, and every todo belongs to exactly one list. This is know as a **one-to-many** relationship.
+
+[The 3 Types of Relationships in Database Design | Database.Guide](https://database.guide/the-3-types-of-relationships-in-database-design/)
+
+For our todos app, we’ll add a new model `TodoList`, setting the relationship here:
+```python
+class TodoList(db.Model):
+    """
+    Create a todo_list table with id, name, and a relationship with the todos table
+    """
+    __tablename__ = "todo_lists"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    todos = db.relationship("Todo", backref="list", lazy=True)
+
+    def __repr__(self):
+        return f"<TodoList id: {self.id}, name: {self.name}>"
+
+```
+
+Then adding the FK constraint to our existing `Todo` model:
+
+```python
+class Todo(db.Model):
+    """
+    Create a todos table id, description, completed, and list_id, which is an index into the todos_list table
+    """
+    __tablename__ = "todos"
+    id = db.Column(db.Integer, primary_key=True)
+    description = db.Column(db.String, nullable=False)
+    completed = db.Column(db.Boolean, nullable=False, default=False)
+    list_id = db.Column(db.Integer, db.ForeignKey("todo_lists.id"), nullable=False, default=1)
+
+    def __repr(self):
+        return f"<Todo id: {self.id}, description: {self.description}, completed: {self.completed}>"
+
+```
+
+Note that with the null constraint on the `list_id` column, we’ll run into issues with `flask upgrade` if we have any todos in the table. They won’t have a `list_id` value, and we can’t force them to a `list_id` since we don’t have any lists in `todo_lists`. We can work around this by modifying the migration script and model to allow nulls, manually inserting a todo list, and updating the `list_id` value of existing todos.
+
+I worked around this with the `startup.sh` [script](./startup.sh), which trashes both Flask and Postgres, along with the `data/` and `migrations/` directories:
+```bash
+# Tear down the container and remove db and migrations
+docker compose stop
+rm -rfv data/*
+rm -rfv migrations
+
+# Clean up all containers, fresh build
+docker container prune -f
+docker compose up -d
+```
+
+Then we run the migrations against empty tables, so we don’t run into that issue:
+```bash
+docker exec -ti "$FLASK_CONTAINER_NAME" flask db init
+docker exec -ti "$FLASK_CONTAINER_NAME" flask db migrate
+docker exec -ti "$FLASK_CONTAINER_NAME" flask db upgrade
+```
+
+Next, we write a SQL file and run it against Postgres to add a list to `todo_lists`:
+
+```postgresql
+begin;
+
+insert into todo_lists values (1, 'uncategorized') on conflict do nothing;
+
+end;
+```
+
+```bash
+# copy and run sql file to postgres container
+docker cp ./sql/init.sql "$POSTGRES_CONTAINER_NAME":/tmp/init.sql
+docker exec -u "$POSTGRES_USER" "$POSTGRES_CONTAINER_NAME" psql "$POSTGRES_DB" "$POSTGRES_USER" -f /tmp/init.sql
 ```
