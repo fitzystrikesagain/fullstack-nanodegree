@@ -1,17 +1,21 @@
 import sys
 
+from flask import Flask
 from flask import render_template, request, jsonify, redirect, url_for
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
 
-from config import create_app, create_db, FLASK_PORT
-from models import Todo, TodoList
-
+from config import FLASK_PORT, get_conn_string
+from models import db, Todo, TodoList
 
 """
 Flask and SQLAlchemy config
 """
-app = create_app()
-db, migrate = create_db()
+app = Flask(__name__, template_folder="./templates")
+app.config["SQLALCHEMY_DATABASE_URI"] = get_conn_string()
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 db.init_app(app)
+migrate = Migrate(app, db)
 
 
 @app.route("/")
@@ -68,6 +72,7 @@ def set_completed_todo(todo_id):
 
 @app.route("/todos/<todo_id>/delete", methods=["DELETE"])
 def delete_todo(todo_id):
+    list_id = Todo.query.get(todo_id).list_id
     try:
         todo = Todo.query.get(todo_id)
         db.session.delete(todo)
@@ -77,7 +82,11 @@ def delete_todo(todo_id):
         db.session.rollback()
     finally:
         db.session.close()
-    return render_template("index.html", data=Todo.query.order_by("id").all())
+    return render_template(
+        "index.html",
+        data=Todo.query.order_by("id").all(),
+        active_list=list_id
+    )
 
 
 if __name__ == "__main__":
