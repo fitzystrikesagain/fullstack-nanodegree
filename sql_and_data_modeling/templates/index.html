@@ -9,10 +9,6 @@
             display: none;
         }
 
-        #list-id {
-            display: none;
-        }
-
         ul {
             list-style: none;
             padding: 0;
@@ -53,7 +49,6 @@
     </ul>
 </div>
 <div class="todos-wrapper">
-    <h4 id="list-id">{{ active_list.id }}</h4>
     <h4>{{ active_list.name }}</h4>
     <form id="form">
         <input type="text" id="description" name="description"/>
@@ -129,8 +124,9 @@
         e.preventDefault();
         const desc = descInput.value;
         descInput.value = "";
-        let listId = document.getElementById("list-id").innerText
-        fetch("/todos/create", {
+        let path = window.location.pathname
+        let listId = window.location.pathname.split("/")[2]
+        fetch(`/todos${path}/create`, {
             method: "POST",
             body: JSON.stringify({
                 "description": desc,
