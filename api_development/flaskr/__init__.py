@@ -1,9 +1,14 @@
 import os
-from flask import Flask, jsonify
+from flask import (
+    Flask,
+    jsonify,
+    render_template
+)
+from flask_migrate import Migrate
 
 
 def create_app(test_config=None):
-    app = Flask(__name__, instance_relative_config=True)
+    app = Flask(__name__, instance_relative_config=True, template_folder="pages")
 
     if not test_config:
         # load the instance config, if it exists, when not testing
@@ -25,6 +30,13 @@ def create_app(test_config=None):
     @app.route("/")
     def hello():
         return jsonify({"message": "HELLO WORLD"})
+
+    @app.route("/hello")
+    def hello_new():
+        title = "Hello"
+        message = "Hello world!"
+        return render_template("hello.html", title=title, message=message)
+        # return "HELLO WORLD"
 
     @app.route("/smiley")
     def smiley():
