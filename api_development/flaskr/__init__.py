@@ -4,42 +4,48 @@ from flask import (
     jsonify,
     render_template
 )
-from flask_migrate import Migrate
+from flask_cors import CORS, cross_origin
+from models import setup_db, Book
 
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True, template_folder="pages")
+    setup_db(app)
+    CORS(app)
 
-    if not test_config:
-        # load the instance config, if it exists, when not testing
-        app.config.from_pyfile('config.py', silent=True)
-    else:
-        # load the test config if passed in
-        app.config.from_mapping(test_config)
-
-    try:
-        os.makedirs(app.instance_path)
-    except OSError:
-        pass
-
-    app.config.from_mapping(
-        SECRET_KEY=os.environ.get("SECRET_KEY"),
-        DATABASE=os.path.join(app.instance_path, "flaskr.sqlite")
-    )
+    @app.after_request
+    def after_request(response):
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
+        return response
 
     @app.route("/")
+    @cross_origin()
     def hello():
-        return jsonify({"message": "HELLO WORLD"})
+        return jsonify({"message": "hello world"})
 
-    @app.route("/hello")
-    def hello_new():
-        title = "Hello"
-        message = "Hello world!"
-        return render_template("hello.html", title=title, message=message)
-        # return "HELLO WORLD"
+    @app.route("/books")
+    def get_books():
+        books = Book.query.order_by(Book.id).all()
+        data = [{
+            "id": book.id,
+            "title": book.title,
+            "author": book.author,
+            "rating": book.rating,
+        } for book in books]
+        return jsonify(data)
 
-    @app.route("/smiley")
-    def smiley():
-        return ":)"
+    @app.route("/books/<int:book_id>")
+    def get_specific_book(book_id):
+        book = Book.query.get(book_id)
+        data = {
+            "id": book.id,
+            "title": book.title,
+            "author": book.author,
+            "rating": book.rating,
+        }
+        return jsonify(data)
+
+
 
     return app
