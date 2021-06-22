@@ -1,10 +1,21 @@
 version: "3.6"
-
 services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile-frontend
+    command: npm start
+    container_name: node
+    ports:
+      - "3000:3000"
+    volumes:
+      - /app/node_modules
+      - ./frontend:/app
+    restart: unless-stopped
   flask:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile-backend
     command: flask run -h "0.0.0.0"
     container_name: flask-api
     env_file:
@@ -14,7 +25,7 @@ services:
       - "5000:5000"
     restart: unless-stopped
     volumes:
-      - ./:/usr/src/app/
+      - ./backend/:/usr/src/app/
   postgres:
     image: postgres:latest
     container_name: postgres
@@ -25,4 +36,3 @@ services:
     restart: unless-stopped
     volumes:
       - ./data:/var/lib/postgresql/data
-
