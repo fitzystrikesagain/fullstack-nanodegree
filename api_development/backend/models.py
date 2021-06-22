@@ -25,12 +25,6 @@ def setup_db(app, database_path=database_path):
     db.create_all()
 
 
-'''
-Movie
-
-'''
-
-
 class Book(db.Model):
     __tablename__ = 'books'
 
