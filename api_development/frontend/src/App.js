@@ -1,11 +1,11 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import $ from 'jquery';
 
 import './stylesheets/App.css';
 import FormView from './components/FormView';
 import Book from './components/Book';
 
-
+const FLASK_HOST = "flask-api:5000"
 class App extends Component {
   constructor(props){
     super();
@@ -18,18 +18,19 @@ class App extends Component {
 
   getBooks = () => {
     $.ajax({
-      url: `/books?page=${this.state.page}`, //TODO: update request URL
+      url: `${FLASK_HOST}/books?page=${this.state.page}`,
+      // request URL
       type: "GET",
       success: (result) => {
         this.setState({
           totalBooks: result.total_books,
-          books: result.books 
+          books: result.books
         })
-        return;
+
       },
       error: (error) => {
         alert('Unable to load books. Please try your request again')
-        return;
+
       }
     })
   }
@@ -37,14 +38,14 @@ class App extends Component {
   deleteBook = (id) => {
     if(window.confirm('Are you sure you want to delete the book?')) {
       $.ajax({
-        url: `/books/${id}`, //TODO: update request URL
+        url: `${FLASK_HOST}/books/${id}`,
         type: "DELETE",
         success: (result) => {
           this.getBooks();
         },
         error: (error) => {
           alert('Unable to delete the book.')
-          return;
+
         }
       })
     }
@@ -55,7 +56,7 @@ class App extends Component {
     let targetBook = books.find((book) => book.id === id);
 
     $.ajax({
-      url: `/books/${id}`, //TODO: update request URL
+      url: `${FLASK_HOST}/books/${id}`,
       type: "PATCH",
       dataType: 'json',
       contentType: 'application/json',
@@ -66,14 +67,14 @@ class App extends Component {
       },
       error: (error) => {
         alert('Unable to update the rating.')
-        return;
+
       }
     })
   }
 
   searchBooks = (search) => {
     $.ajax({
-      url: '/books', //TODO: update request URL
+      url: `${FLASK_HOST}/books`,
       type: "POST",
       dataType: 'json',
       contentType: 'application/json',
@@ -89,11 +90,11 @@ class App extends Component {
           page: 1
         })
         document.getElementById("search-form").reset();
-        return;
+
       },
       error: (error) => {
         alert('Unable to complete search. Please try your request again')
-        return;
+
       }
     })
   }

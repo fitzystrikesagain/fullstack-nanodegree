@@ -1,8 +1,9 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import $ from 'jquery';
 
 import '../stylesheets/FormView.css';
 
+const FLASK_HOST = "flask-api:5000"
 class FormView extends Component {
   constructor(props){
     super();
@@ -17,7 +18,7 @@ class FormView extends Component {
   submitBook = (event) => {
     event.preventDefault();
     $.ajax({
-      url: '/books', //TODO: update request URL
+      url: `${FLASK_HOST}/books`,
       type: "POST",
       dataType: 'json',
       contentType: 'application/json',
@@ -32,11 +33,11 @@ class FormView extends Component {
       crossDomain: true,
       success: (result) => {
         document.getElementById("add-book-form").reset();
-        return;
+
       },
       error: (error) => {
         alert('Unable to add book. Please try your request again')
-        return;
+
       }
     })
   }
