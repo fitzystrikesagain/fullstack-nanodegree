@@ -1,5 +1,6 @@
-from flask import Flask, jsonify, request
-from flask_cors import CORS, cross_origin
+from flask import Flask, jsonify, request, abort
+# from flask_cors import CORS, cross_origin
+from flask_cors import cross_origin, CORS
 
 from models import Book, setup_db
 
@@ -25,9 +26,9 @@ def create_app(test_config=None):
     @app.after_request
     def after_request(response):
         response.headers.add('Access-Control-Allow-Headers',
-                             'Content-Type,Authorization,true')
-        response.headers.add('Access-Control-Allow-Methods',
-                             'GET,PUT,POST,DELETE,OPTIONS')
+                             'Content-Type, Authorization')
+        response.headers.add('Access-Control-Allow-Headers',
+                             'GET, POST, PATCH, DELETE, OPTIONS')
         return response
 
     @app.route("/")
@@ -37,16 +38,10 @@ def create_app(test_config=None):
             "message": "hello world"
         })
 
-    # @TODO: Write a route that retrivies all books, paginated.
-    #   You can use the constant above to paginate by eight books.
-    #   If you decide to change the number of books per page,
-    #   update the frontend to handle additional books in the styling and
-    #   pagination
-    #   Response body keys: 'success', 'books' and 'total_books'
     # TEST: When completed, the webpage will display books including title,
     # author, and rating shown as stars
     @app.route("/books")
-    @cross_origin
+    @cross_origin()
     def get_books():
         # page = request.args.get("page", 1, default=int)
         books = Book.query.order_by(Book.id).all()
@@ -54,10 +49,13 @@ def create_app(test_config=None):
         page = request.args.get("page", 1, type=int)
         start = (page - 1) * BOOKS_PER_SHELF
         end = start + BOOKS_PER_SHELF
+        current_books = formatted_books[start:end]
+        if len(current_books) == 0:
+            abort(404)
 
         response = {
             "status": "success",
-            "books": formatted_books[start:end],
+            "books": current_books,
             "total_books": len(formatted_books),
         }
         return jsonify(response)
@@ -70,6 +68,13 @@ def create_app(test_config=None):
     #   Response body keys: 'success'
     # TEST: When completed, you will be able to click on stars to update a
     # book's rating and it will persist after refresh
+    @app.route("/books/<int:book_id>")
+    @cross_origin()
+    def get_specific_book(book_id):
+        return jsonify({
+            "id": book_id
+        })
+        pass
 
     # @TODO: Write a route that will delete a single book.
     #   Response body keys: 'success', 'deleted'(id of deleted book), 'books'

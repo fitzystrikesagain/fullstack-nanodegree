@@ -7,6 +7,7 @@ pg_dbname = os.environ.get("POSTGRES_DB")
 pg_user = os.environ.get("POSTGRES_USER")
 pg_pass = os.environ.get("POSTGRES_PASSWORD")
 pg_host = f"{os.environ.get('POSTGRES_HOST')}:5432"
+pg_host_local = "localhost:5432"
 database_path = f"postgresql://{pg_user}:{pg_pass}@{pg_host}/{pg_dbname}"
 
 db = SQLAlchemy()
