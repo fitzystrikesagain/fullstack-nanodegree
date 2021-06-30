@@ -2,3 +2,5 @@
 /sql_and_data_modeling/data/
 */migrations/*
 /api_development/backend/data/
+api_development/frontend/node_modules/
+api_development/frontend/build/
