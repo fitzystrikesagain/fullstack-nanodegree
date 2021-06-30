@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, abort
 # from flask_cors import CORS, cross_origin
-from flask_cors import cross_origin, CORS
+from flask_cors import CORS
 
 from models import Book, setup_db
 
@@ -41,7 +41,6 @@ def create_app(test_config=None):
     # TEST: When completed, the webpage will display books including title,
     # author, and rating shown as stars
     @app.route("/books")
-    @cross_origin()
     def get_books():
         # page = request.args.get("page", 1, default=int)
         books = Book.query.order_by(Book.id).all()
@@ -69,7 +68,6 @@ def create_app(test_config=None):
     # TEST: When completed, you will be able to click on stars to update a
     # book's rating and it will persist after refresh
     @app.route("/books/<int:book_id>")
-    @cross_origin()
     def get_specific_book(book_id):
         return jsonify({
             "id": book_id
