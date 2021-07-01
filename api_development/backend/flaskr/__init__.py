@@ -81,12 +81,26 @@ def create_app(test_config=None):
             logging.error(e)
             abort(404)
 
-    # @TODO: Write a route that will delete a single book.
-    #   Response body keys: 'success', 'deleted'(id of deleted book), 'books'
-    #   and 'total_books'
-    #   Response body keys: 'success', 'books' and 'total_books'
-    # TEST: When completed, you will be able to delete a single book by
-    # clicking on the trashcan.
+    @app.route("/books/<int:book_id>", methods=["DELETE"])
+    def delete_book(book_id):
+        try:
+            book = Book.query.get(book_id)
+            if not book:
+                abort(404)
+            book.delete()
+            current_books = [book.format() for book in Book.query.order_by(
+                Book.id).all()]
+
+            return jsonify({
+                "status": "success",
+                "deleted": book.id,
+                "books": current_books,
+                "total_books": len(current_books),
+            })
+
+        except Exception as e:
+            logging.error(e)
+            abort(404)
 
     # @TODO: Write a route that create a new book.
     #   Response body keys: 'success', 'created'(id of created book), 'books'
