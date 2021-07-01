@@ -1,8 +1,9 @@
 import unittest
+
 from flask_sqlalchemy import SQLAlchemy
 
 from flaskr import create_app
-from models import setup_db, database_path
+from models import setup_db, db_uri
 
 
 class BookTestCase(unittest.TestCase):
@@ -13,7 +14,7 @@ class BookTestCase(unittest.TestCase):
         self.app = create_app()
         self.client = self.app.test_client
         self.database_name = "bookshelf_test"
-        self.database_path = database_path
+        self.database_path = db_uri
         setup_db(self.app, self.database_path)
 
         self.new_book = {

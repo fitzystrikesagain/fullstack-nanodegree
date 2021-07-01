@@ -8,7 +8,7 @@ pg_user = os.environ.get("POSTGRES_USER")
 pg_pass = os.environ.get("POSTGRES_PASSWORD")
 pg_host = f"{os.environ.get('POSTGRES_HOST')}:5432"
 pg_host_local = "localhost:5432"
-database_path = f"postgresql://{pg_user}:{pg_pass}@{pg_host}/{pg_dbname}"
+db_uri = f"postgresql://{pg_user}:{pg_pass}@{pg_host}/{pg_dbname}"
 db = SQLAlchemy()
 
 '''
@@ -17,7 +17,7 @@ setup_db(app)
 '''
 
 
-def setup_db(app, database_path=database_path):
+def setup_db(app, database_path=db_uri):
     app.config["SQLALCHEMY_DATABASE_URI"] = database_path
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.app = app
