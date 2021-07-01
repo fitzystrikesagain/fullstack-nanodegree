@@ -1,6 +1,7 @@
 import os
-from sqlalchemy import Column, String, Integer
+
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Column, String, Integer
 
 pg_dbname = os.environ.get("POSTGRES_DB")
 pg_user = os.environ.get("POSTGRES_USER")
