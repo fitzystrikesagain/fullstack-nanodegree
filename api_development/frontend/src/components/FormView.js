@@ -3,7 +3,6 @@ import $ from 'jquery';
 
 import '../stylesheets/FormView.css';
 
-const FLASK_HOST = "flask-api:5000"
 class FormView extends Component {
   constructor(props){
     super();
@@ -18,7 +17,7 @@ class FormView extends Component {
   submitBook = (event) => {
     event.preventDefault();
     $.ajax({
-      url: `${FLASK_HOST}/books`,
+      url: `/books`,
       type: "POST",
       dataType: 'json',
       contentType: 'application/json',

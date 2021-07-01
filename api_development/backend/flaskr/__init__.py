@@ -102,11 +102,26 @@ def create_app(test_config=None):
             logging.error(e)
             abort(404)
 
-    # @TODO: Write a route that create a new book.
-    #   Response body keys: 'success', 'created'(id of created book), 'books'
-    #   and 'total_books'
-    # TEST: When completed, you will be able to a new book using the form.
-    # Try doing so from the last page of books. Your new book should show up
-    # immediately after you submit it at the end of the page.
+    @app.route("/books", methods=["POST"])
+    def create_book():
+        data = request.get_json()
+        title = data.get("title")
+        author = data.get("author")
+        rating = data.get("rating")
+
+        if not title or not author or not rating:
+            abort(404)
+
+        book = Book(title, author, rating)
+        book.insert()
+
+        current_books = [book.format() for book in Book.query.all()]
+
+        return jsonify({
+            "status": "success",
+            "created": book.id,
+            "books": current_books,
+            "total_books": len(current_books)
+        })
 
     return app
