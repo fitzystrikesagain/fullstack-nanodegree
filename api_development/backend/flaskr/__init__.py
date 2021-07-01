@@ -1,7 +1,8 @@
+import logging
+
 from flask import Flask, jsonify, request, abort
 # from flask_cors import CORS, cross_origin
 from flask_cors import CORS
-
 from models import Book, setup_db
 
 BOOKS_PER_SHELF = 8
@@ -60,19 +61,25 @@ def create_app(test_config=None):
         return jsonify(response)
         pass
 
-    # @TODO: Write a route that will update a single book's rating.
-    #   It should only be able to update the rating, not the entire
-    #   representation and should follow API design principles regarding
-    #   method and route.
-    #   Response body keys: 'success'
-    # TEST: When completed, you will be able to click on stars to update a
-    # book's rating and it will persist after refresh
-    @app.route("/books/<int:book_id>")
-    def get_specific_book(book_id):
-        return jsonify({
-            "id": book_id
-        })
-        pass
+    @app.route("/books/<int:book_id>", methods=["PATCH"])
+    def update_rating(book_id):
+        body = request.get_json()
+
+        try:
+            book = Book.query.get(book_id)
+            if not book:
+                abort(404)
+            book.rating = body["rating"]
+            book.update()
+
+            return jsonify({
+                "status": "success",
+                "id": book.id
+            })
+
+        except Exception as e:
+            logging.error(e)
+            abort(404)
 
     # @TODO: Write a route that will delete a single book.
     #   Response body keys: 'success', 'deleted'(id of deleted book), 'books'
