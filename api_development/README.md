@@ -388,7 +388,3 @@ the structure below is a good starting place.
 * **Deployment** (if applicable)
 * **Authors**
 * **Acknowledgements**
-
--------
-
-# fsnd/api-development
